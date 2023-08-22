@@ -3,13 +3,6 @@ import java.util.LinkedList;
 import java.util.concurrent.locks.Lock;
 
 public class CRUD {
-    private final Lock readLock = new BakeryLock(4);
-    private final Lock createLock = new BakeryLock(4);
-    private final Lock updateLock = new BakeryLock(4);
-    private final Lock deleteLock = new BakeryLock(4);
-
-    private final Lock databaseLock = new BakeryLock(4);
-
     private volatile Queue<Info> create = new LinkedList<>();
     private volatile Queue<Info> update = new LinkedList<>();
     private volatile Queue<Info> delete = new LinkedList<>();
@@ -17,11 +10,17 @@ public class CRUD {
 
     private volatile Queue<Info> database = new LinkedList<>();
 
+    private final Lock readLock = new BakeryLock(4);
+    private final Lock createLock = new BakeryLock(4);
+    private final Lock updateLock = new BakeryLock(4);
+    private final Lock deleteLock = new BakeryLock(4);
+
+    private final Lock databaseLock = new BakeryLock(4);
+
+
     public CRUD() {
-        String ids[] = { "u123", "u456", "u789", "u321", "u654", "u987", "u147", "u258", "u369", "u741", "u852",
-                "u963" };
-        String names[] = { "Thabo", "Luke", "James", "Lunga", "Ntando", "Scott", "Michael", "Ntati", "Lerato", "Niel",
-                "Saeed", "Rebecca" };
+        String ids[] = { "u123", "u456", "u789", "u321", "u654", "u987", "u147", "u258", "u369", "u741", "u852", "u963" };
+        String names[] = { "Thabo", "Luke", "James", "Lunga", "Ntando", "Scott", "Michael", "Ntati", "Lerato", "Niel", "Saeed", "Rebecca" };
 
         for (int i = 0; i < 20; i++) {
             read.add(true);
@@ -150,7 +149,7 @@ public class CRUD {
         }
 
         deleteLock.unlock();
-        
+
         return false;
     }
 }
