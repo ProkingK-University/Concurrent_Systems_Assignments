@@ -1,15 +1,20 @@
 public class CrudThread extends Thread {
     private CRUD crud;
     private char operation;
+    private volatile boolean running = true;
 
     public CrudThread(CRUD crud, char operation) {
         this.crud = crud;
         this.operation = operation;
     }
 
+    public void stopThread() {
+        running = false;
+    }
+
     @Override
     public void run() {
-        while (!isInterrupted()) {
+        while (running) {
             switch (operation) {
                 case 'c':
                     crud.create();
@@ -23,14 +28,6 @@ public class CrudThread extends Thread {
                 case 'd':
                     crud.delete();
                     break;
-            }
-
-            try {
-                System.out.println("[" + getName() + "] [" + operation + "] is sleeping.");
-
-                Thread.sleep((long) (Math.random() * 50 + 50));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
     }

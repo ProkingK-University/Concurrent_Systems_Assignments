@@ -3,6 +3,8 @@ import java.util.LinkedList;
 import java.util.concurrent.locks.Lock;
 
 public class CRUD {
+    private final long delay = (long) (Math.random() * 50 + 50);
+
     private volatile Queue<Info> create = new LinkedList<>();
     private volatile Queue<Info> update = new LinkedList<>();
     private volatile Queue<Info> delete = new LinkedList<>();
@@ -48,17 +50,30 @@ public class CRUD {
 
         createLock.lock();
 
-        if (!create.isEmpty()) {
-            Info info = create.poll();
+        try {
+            if (!create.isEmpty()) {
+                Info info = create.poll();
 
-            databaseLock.lock();
-            database.add(info);
-            databaseLock.unlock();
+                databaseLock.lock();
 
-            System.out.println(Thread.currentThread().getName() + " (CREATE) success " + info);
-        } else {
+                try {
+                    database.add(info);
+                } finally {
+                    databaseLock.unlock();
+                }
+
+                System.out.println(Thread.currentThread().getName() + " (CREATE) success " + info);
+            } else {
+                CrudThread currentThread = (CrudThread) Thread.currentThread();
+                currentThread.stopThread();
+            }
+
+            System.out.println(Thread.currentThread().getName() + " (CREATE) sleeping.");
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
             createLock.unlock();
-            Thread.currentThread().interrupt();
         }
     }
 
@@ -67,23 +82,34 @@ public class CRUD {
 
         readLock.lock();
 
-        if (!read.isEmpty()) {
-            read.poll();
+        try {
+            if (!read.isEmpty()) {
+                read.poll();
 
-            databaseLock.lock();
+                databaseLock.lock();
 
-            System.out.println("---------------");
+                try {
+                    System.out.println("---------------");
 
-            for (Info info : database) {
-                System.out.println(info);
+                    for (Info info : database) {
+                        System.out.println(info);
+                    }
+
+                    System.out.println("---------------");
+                } finally {
+                    databaseLock.unlock();
+                }
+            } else {
+                CrudThread currentThread = (CrudThread) Thread.currentThread();
+                currentThread.stopThread();
             }
 
-            System.out.println("---------------");
-
-            databaseLock.unlock();
-        } else {
+            System.out.println(Thread.currentThread().getName() + " (READ) sleeping.");
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
             readLock.unlock();
-            Thread.currentThread().interrupt();
         }
     }
 
@@ -92,37 +118,43 @@ public class CRUD {
 
         updateLock.lock();
 
-        if (!update.isEmpty()) {
-            Info info = update.poll();
+        try {
+            if (!update.isEmpty()) {
+                Info info = update.poll();
 
-            databaseLock.lock();
+                databaseLock.lock();
 
-            for (Info record : database) {
-                if (record.id.equals(info.id) && record.name.equals(info.name)) {
-                    record.practicals = info.practicals;
-                    record.assignments = info.assignments;
-
+                try {
+                    for (Info record : database) {
+                        if (record.id.equals(info.id) && record.name.equals(info.name)) {
+                            record.practicals = info.practicals;
+                            record.assignments = info.assignments;
+                        }
+                    }
+                } finally {
                     databaseLock.unlock();
                 }
-            }
 
-            databaseLock.unlock();
+                info.attempt++;
 
-            info.attempt++;
+                if (info.attempt <= 2) {
+                    update.add(info);
+                } else {
+                    update.remove(info);
+                }
 
-            if (info.attempt <= 2) {
-                update.add(info);
+                System.out.println(Thread.currentThread().getName() + " (UPDATE) failed " + info);
             } else {
-                update.remove(info);
+                CrudThread currentThread = (CrudThread) Thread.currentThread();
+                currentThread.stopThread();
             }
 
+            System.out.println(Thread.currentThread().getName() + " (UPDATE) sleeping.");
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
             updateLock.unlock();
-
-            System.out.println(Thread.currentThread().getName() + " (UPDATE) failed " + info);
-        } else {
-            updateLock.unlock();
-
-            Thread.currentThread().interrupt();
         }
     }
 
@@ -131,36 +163,42 @@ public class CRUD {
 
         deleteLock.lock();
 
-        if (!delete.isEmpty()) {
-            Info info = delete.poll();
+        try {
+            if (!delete.isEmpty()) {
+                Info info = delete.poll();
 
-            databaseLock.lock();
+                databaseLock.lock();
 
-            for (Info record : database) {
-                if (record.id.equals(info.id) && record.name.equals(info.name)) {
-                    database.remove(record);
-
+                try {
+                    for (Info record : database) {
+                        if (record.id.equals(info.id) && record.name.equals(info.name)) {
+                            database.remove(record);
+                        }
+                    }
+                } finally {
                     databaseLock.unlock();
                 }
-            }
 
-            databaseLock.unlock();
+                info.attempt++;
 
-            info.attempt++;
+                if (info.attempt <= 2) {
+                    delete.add(info);
+                } else {
+                    delete.remove(info);
+                }
 
-            if (info.attempt <= 2) {
-                delete.add(info);
+                System.out.println(Thread.currentThread().getName() + " (DELETE) failed " + info);
             } else {
-                delete.remove(info);
+                CrudThread currentThread = (CrudThread) Thread.currentThread();
+                currentThread.stopThread();
             }
 
+            System.out.println(Thread.currentThread().getName() + " (DELETE) sleeping.");
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
             deleteLock.unlock();
-
-            System.out.println(Thread.currentThread().getName() + " (DELETE) failed " + info);
-        } else {
-            deleteLock.unlock();
-
-            Thread.currentThread().interrupt();
         }
     }
 }
