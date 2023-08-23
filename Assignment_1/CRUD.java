@@ -17,7 +17,6 @@ public class CRUD {
 
     private final Lock databaseLock = new BakeryLock(4);
 
-
     public CRUD() {
         String ids[] = { "u123", "u456", "u789", "u321", "u654", "u987", "u147", "u258", "u369", "u741", "u852", "u963" };
         String names[] = { "Thabo", "Luke", "James", "Lunga", "Ntando", "Scott", "Michael", "Ntati", "Lerato", "Niel", "Saeed", "Rebecca" };
@@ -44,7 +43,9 @@ public class CRUD {
         }
     }
 
-    public boolean create() {
+    public void create() {
+        System.out.println(Thread.currentThread().getName() + " (CREATE) is waiting for request.");
+
         createLock.lock();
 
         if (!create.isEmpty()) {
@@ -54,15 +55,16 @@ public class CRUD {
             database.add(info);
             databaseLock.unlock();
 
-            return true;
+            System.out.println(Thread.currentThread().getName() + " (CREATE) success " + info);
         } else {
             createLock.unlock();
-
-            return false;
+            Thread.currentThread().interrupt();
         }
     }
 
-    public boolean read() {
+    public void read() {
+        System.out.println(Thread.currentThread().getName() + " (READ) is waiting for request.");
+
         readLock.lock();
 
         if (!read.isEmpty()) {
@@ -79,16 +81,15 @@ public class CRUD {
             System.out.println("---------------");
 
             databaseLock.unlock();
-
-            return true;
         } else {
             readLock.unlock();
-
-            return false;
+            Thread.currentThread().interrupt();
         }
     }
 
-    public boolean update() {
+    public void update() {
+        System.out.println(Thread.currentThread().getName() + " (UPDATE) is waiting for request.");
+
         updateLock.lock();
 
         if (!update.isEmpty()) {
@@ -102,8 +103,6 @@ public class CRUD {
                     record.assignments = info.assignments;
 
                     databaseLock.unlock();
-
-                    return true;
                 }
             }
 
@@ -113,15 +112,23 @@ public class CRUD {
 
             if (info.attempt <= 2) {
                 update.add(info);
+            } else {
+                update.remove(info);
             }
+
+            updateLock.unlock();
+
+            System.out.println(Thread.currentThread().getName() + " (UPDATE) failed " + info);
+        } else {
+            updateLock.unlock();
+
+            Thread.currentThread().interrupt();
         }
-
-        updateLock.unlock();
-
-        return false;
     }
 
-    public boolean delete() {
+    public void delete() {
+        System.out.println(Thread.currentThread().getName() + " (DELETE) is waiting for request.");
+
         deleteLock.lock();
 
         if (!delete.isEmpty()) {
@@ -134,8 +141,6 @@ public class CRUD {
                     database.remove(record);
 
                     databaseLock.unlock();
-
-                    return true;
                 }
             }
 
@@ -145,11 +150,17 @@ public class CRUD {
 
             if (info.attempt <= 2) {
                 delete.add(info);
+            } else {
+                delete.remove(info);
             }
+
+            deleteLock.unlock();
+
+            System.out.println(Thread.currentThread().getName() + " (DELETE) failed " + info);
+        } else {
+            deleteLock.unlock();
+
+            Thread.currentThread().interrupt();
         }
-
-        deleteLock.unlock();
-
-        return false;
     }
 }

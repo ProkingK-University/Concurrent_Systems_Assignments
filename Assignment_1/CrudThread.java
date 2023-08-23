@@ -9,30 +9,20 @@ public class CrudThread extends Thread {
 
     @Override
     public void run() {
-        while (true) {
-            System.out.println("[" + getName() + "] [" + operation + "] is waiting for request.");
-
-            boolean success = false;
-
+        while (!isInterrupted()) {
             switch (operation) {
                 case 'c':
-                    success = crud.create();
+                    crud.create();
                     break;
                 case 'r':
-                    success = crud.read();
+                    crud.read();
                     break;
                 case 'u':
-                    success = crud.update();
+                    crud.update();
                     break;
                 case 'd':
-                    success = crud.delete();
+                    crud.delete();
                     break;
-            }
-
-            if (success) {
-                System.out.println("[" + getName() + "] [" + operation + "] success");
-            } else {
-                System.out.println("[" + getName() + "] [" + operation + "] failed");
             }
 
             try {
