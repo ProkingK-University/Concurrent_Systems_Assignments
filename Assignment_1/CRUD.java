@@ -100,6 +100,8 @@ public class CRUD {
                 } finally {
                     databaseLock.unlock();
                 }
+
+                System.out.println(Thread.currentThread().getName() + " (READ) success.");
             } else {
                 CrudThread currentThread = (CrudThread) Thread.currentThread();
                 currentThread.stopThread();
@@ -175,7 +177,7 @@ public class CRUD {
                     while (iterator.hasNext()) {
                         Info record = iterator.next();
                         if (record.id.equals(info.id) && record.name.equals(info.name)) {
-                            iterator.remove(); // Use iterator to safely remove the element
+                            iterator.remove();
                         }
                     }
                 } finally {
