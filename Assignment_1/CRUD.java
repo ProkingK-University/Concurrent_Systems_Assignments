@@ -1,4 +1,5 @@
 import java.util.Queue;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.locks.Lock;
 
@@ -170,9 +171,11 @@ public class CRUD {
                 databaseLock.lock();
 
                 try {
-                    for (Info record : database) {
+                    Iterator<Info> iterator = database.iterator();
+                    while (iterator.hasNext()) {
+                        Info record = iterator.next();
                         if (record.id.equals(info.id) && record.name.equals(info.name)) {
-                            database.remove(record);
+                            iterator.remove(); // Use iterator to safely remove the element
                         }
                     }
                 } finally {
