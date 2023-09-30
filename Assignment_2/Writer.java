@@ -1,3 +1,5 @@
+import java.util.Random;
+
 class Writer extends Thread {
     private Client client;
 
@@ -11,7 +13,8 @@ class Writer extends Thread {
         for (int i = 0; i < 10; i++) {
             String recipient = client.getName();
             while (recipient.equals(client.getName())) {
-                recipient = client.getServer().clientQueues.keySet().toArray()[random.nextInt(client.getServer().clientQueues.size())].toString();
+                recipient = client.getServer().getClientQueues().keySet().toArray()[random
+                        .nextInt(client.getServer().getClientQueues().size())].toString();
             }
             Message message = new Message(client.getName(), recipient, "Message " + i);
             client.sendMessage(message);
@@ -21,6 +24,7 @@ class Writer extends Thread {
                 e.printStackTrace();
             }
         }
-        client.printChat();
+
+        client.setAllMessagesSent(true);
     }
 }
