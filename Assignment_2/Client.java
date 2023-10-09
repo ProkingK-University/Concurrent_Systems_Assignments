@@ -1,21 +1,18 @@
-import java.util.LinkedList;
 import java.util.Queue;
+import java.util.LinkedList;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 class Client {
     private String name;
     private Server server;
     private Queue<Message> chat;
     private Lock chatLock;
-    private boolean allMessagesSent;
 
     public Client(String name, Server server) {
         this.name = name;
         this.server = server;
         this.chat = new LinkedList<>();
-        this.chatLock = new ReentrantLock(true);
-        this.allMessagesSent = false;
+        this.chatLock = new BakeryLock(2);
         server.addClient(name);
         new Reader(this).start();
         new Writer(this).start();
@@ -56,13 +53,5 @@ class Client {
         } finally {
             chatLock.unlock();
         }
-    }
-
-    public boolean isAllMessagesSent() {
-        return allMessagesSent;
-    }
-
-    public void setAllMessagesSent(boolean allMessagesSent) {
-        this.allMessagesSent = allMessagesSent;
     }
 }

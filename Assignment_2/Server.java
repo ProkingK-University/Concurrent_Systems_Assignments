@@ -3,7 +3,6 @@ import java.util.Queue;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class Server {
     private Map<String, Lock> clientLocks;
@@ -21,8 +20,7 @@ public class Server {
         try {
             Queue<Message> queue = clientQueues.get(recipient);
             queue.add(message);
-            System.out.println("(SEND) [" + Thread.currentThread().getName() + "]: { sender:" + message.getSender()
-                    + ", recipient:" + recipient + "}");
+            System.out.println("(SEND) [" + Thread.currentThread().getName() + "]: { sender:" + message.getSender() + ", recipient:" + recipient + "}");
             System.out.println("(SEND) [" + Thread.currentThread().getName() + "]: SUCCESSFUL");
         } finally {
             lock.unlock();
@@ -48,7 +46,7 @@ public class Server {
 
     public void addClient(String clientName) {
         clientQueues.put(clientName, new LinkedList<>());
-        clientLocks.put(clientName, new ReentrantLock(true));
+        clientLocks.put(clientName, new BakeryLock(2));
     }
 
     public Map<String, Queue<Message>> getClientQueues() {
